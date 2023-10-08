@@ -119,7 +119,7 @@ export default function Home() {
         </span>
       </h1>
       <div className="flex pl-2 justify-center w-full overflow-hidden">
-        <main className="container  flex justify-center mt-10 flex-col items-start">
+        <main className="w-full md:container  flex justify-center mt-10 flex-col items-start">
           <div className=" text-cyan-400 text-xs mt-5 ">
             TO SORT EMAIL JUST CLICK ON EMAIL IT WILL SORT IN ASCENDING or
             DESCENDING ORDER
@@ -140,16 +140,16 @@ export default function Home() {
               onChange={(value) => setGlobalFilter(String(value))}
             />
           </div>
-          <div className="overflow-auto w-full flex  justify-center  shadow  mt-5">
+          <div className="overflow-auto w-full   shadow  mt-5">
             {user.length > 0 ? (
-              <table className="w-full  ">
+              <table className="w-full">
                 <thead className="bg-[#232D3F] ">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <tr key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
                         <th
                           key={header.id}
-                          className="first:min-w-[40px] min-w-[150px] p-3 text-sm font-semibold tracking-wide text-center border-[1px] text-[#4db28b]  border-[#5C8374]"
+                          className="first:min-w-[80px] min-w-[150px] p-3 text-sm font-semibold tracking-wide text-center border-[1px] text-[#4db28b]  border-[#5C8374]"
                         >
                           {header.isPlaceholder ? null : (
                             <div
