@@ -6,6 +6,7 @@ import Select from "react-select";
 import { useForm, Controller } from "react-hook-form";
 import { COUNTRY_DATA_TYPE, INPUTS, USER } from "@/types";
 import { saveToLocalStore } from "@/helper";
+import { enqueueSnackbar } from "notistack";
 export default function InsertDataModal({
   open,
   onClose,
@@ -16,6 +17,7 @@ export default function InsertDataModal({
   setUser: React.Dispatch<React.SetStateAction<USER[]>>;
 }) {
   const [options, setOptions] = React.useState<COUNTRY_DATA_TYPE[]>([]);
+  const formRef = React.useRef<HTMLFormElement>(null);
   const {
     register,
     handleSubmit,
@@ -39,6 +41,15 @@ export default function InsertDataModal({
       saveToLocalStore(updatedUser);
       return updatedUser;
     });
+    enqueueSnackbar("Inserted", {
+      variant: "success",
+      anchorOrigin: {
+        horizontal: "right",
+        vertical: "top",
+      },
+      autoHideDuration: 500,
+    });
+    formRef?.current?.reset();
   };
 
   return (
@@ -52,7 +63,11 @@ export default function InsertDataModal({
       }}
     >
       <div className="mt-5 ">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
           <div className="flex flex-col gap-1 ">
             <label htmlFor="" className="text-emerald-500 font-semibold">
               Name

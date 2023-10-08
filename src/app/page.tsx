@@ -12,6 +12,7 @@ import {
   SortingState,
   getSortedRowModel,
 } from "@tanstack/react-table";
+import { SnackbarProvider } from "notistack";
 import { rankItem } from "@tanstack/match-sorter-utils";
 import { useMemo, useState, useEffect } from "react";
 import InsertDataModal from "@/components/InsertDataModal";
@@ -105,6 +106,7 @@ export default function Home() {
 
   return (
     <section className="bg-[#040D12] min-h-screen">
+      <SnackbarProvider />
       {open && (
         <InsertDataModal
           open={open}
