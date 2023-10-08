@@ -94,8 +94,6 @@ export default function Home() {
     getSortedRowModel: getSortedRowModel(),
   });
 
-  console.log(user.length);
-
   useEffect(() => {
     function getUserFromLocalStore() {
       const item = localStorage.getItem("user");
@@ -215,7 +213,7 @@ export default function Home() {
               {"<<"}
             </button>
             <span className="text-red-400">
-              {table.getState().pagination.pageIndex + 1}
+              {user.length > 0 ? table.getState().pagination.pageIndex + 1 : 0}
             </span>
             <span className="text-gray-400">of</span>
             <span className="text-red-400">{table.getPageCount()}</span>
