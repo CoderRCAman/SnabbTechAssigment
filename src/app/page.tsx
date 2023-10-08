@@ -1,113 +1,236 @@
-import Image from 'next/image'
-
+"use client";
+import DebouncedInput from "@/components/DebounceInput";
+import {
+  PaginationState,
+  useReactTable,
+  getCoreRowModel,
+  ColumnDef,
+  flexRender,
+  getPaginationRowModel,
+  getFilteredRowModel,
+  FilterFn,
+  SortingState,
+  getSortedRowModel,
+} from "@tanstack/react-table";
+import { rankItem } from "@tanstack/match-sorter-utils";
+import { useMemo, useState, useEffect } from "react";
+import InsertDataModal from "@/components/InsertDataModal";
+import { USER } from "@/types";
+const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
+  const itemRank = rankItem(row.getValue(columnId), value);
+  addMeta({
+    itemRank,
+  });
+  return itemRank.passed;
+};
 export default function Home() {
+  const columns = useMemo<ColumnDef<USER>[]>(
+    () => [
+      {
+        header: "Name",
+        accessorKey: "name",
+        enableGlobalFilter: true,
+        enableSorting: false,
+        id: "name",
+      },
+      {
+        header: "Email",
+        accessorKey: "email",
+        enableGlobalFilter: false,
+        enableSorting: true,
+        id: "email",
+      },
+      {
+        header: "Password",
+        accessorKey: "password",
+        enableGlobalFilter: false,
+        enableSorting: true,
+        id: "password",
+      },
+      {
+        header: "Country",
+        accessorKey: "country",
+        enableGlobalFilter: false,
+        enableSorting: false,
+        id: "country",
+      },
+    ],
+    []
+  );
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [open, setOpen] = useState(false);
+  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 5,
+  });
+  const [user, setUser] = useState<USER[]>([]);
+  const defaultData: any = useMemo(() => [], []);
+  const pagination = useMemo(
+    () => ({
+      pageIndex,
+      pageSize,
+    }),
+    [pageIndex, pageSize]
+  );
+  const table = useReactTable({
+    data: user ?? defaultData,
+    columns,
+    filterFns: {
+      fuzzy: fuzzyFilter,
+    },
+    state: {
+      pagination,
+      globalFilter,
+      sorting,
+    },
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: fuzzyFilter,
+    getFilteredRowModel: getFilteredRowModel(),
+    onSortingChange: setSorting,
+    getPaginationRowModel: getPaginationRowModel(), // If only doing manual pagination, you don't need this
+    getSortedRowModel: getSortedRowModel(),
+  });
+
+  console.log(user.length);
+
+  useEffect(() => {
+    function getUserFromLocalStore() {
+      const item = localStorage.getItem("user");
+      const data = item !== null ? JSON.parse(item) : [];
+      setUser(data);
+    }
+    getUserFromLocalStore();
+  }, []);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+    <section className="bg-[#040D12] min-h-screen">
+      {open && (
+        <InsertDataModal
+          open={open}
+          onClose={() => setOpen(false)}
+          setUser={setUser}
         />
+      )}
+      <h1 className="text-center pt-5 font-bold text-[#176B87]">
+        Assignment for{" "}
+        <span className=" bg-[#176B87] p-2 rounded-sm text-white">
+          SnabbTech
+        </span>
+      </h1>
+      <div className="flex pl-2 justify-center w-full overflow-hidden">
+        <main className="container  flex justify-center mt-10 flex-col items-start">
+          <div className=" text-cyan-400 text-xs mt-5 ">
+            TO SORT EMAIL JUST CLICK ON EMAIL IT WILL SORT IN ASCENDING or
+            DESCENDING ORDER
+          </div>
+          <div>
+            <button
+              onClick={() => setOpen(true)}
+              className="text-emerald-600 border-[1px] rounded-full border-emerald-700 px-7 py-2 mt-5 text-sm font-bold"
+            >
+              INSERT USER DATA
+            </button>
+          </div>
+          <div className="mt-5">
+            <DebouncedInput
+              value={globalFilter ?? ""}
+              debounce={500}
+              placeholder="Search name"
+              onChange={(value) => setGlobalFilter(String(value))}
+            />
+          </div>
+          <div className="overflow-auto w-full flex  justify-center  shadow  mt-5">
+            {user.length > 0 ? (
+              <table className="w-full  ">
+                <thead className="bg-[#232D3F] ">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <th
+                          key={header.id}
+                          className="first:min-w-[40px] min-w-[150px] p-3 text-sm font-semibold tracking-wide text-center border-[1px] text-[#4db28b]  border-[#5C8374]"
+                        >
+                          {header.isPlaceholder ? null : (
+                            <div
+                              {...{
+                                className: header.column.getCanSort()
+                                  ? "cursor-pointer select-none"
+                                  : "",
+                                onClick:
+                                  header.column.getToggleSortingHandler(),
+                              }}
+                            >
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                              {{
+                                asc: " 🔼",
+                                desc: " 🔽",
+                              }[header.column.getIsSorted() as string] ?? null}
+                            </div>
+                          )}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody>
+                  {table.getRowModel().rows.map((row) => (
+                    <tr className="border-[1px] border-[#5C8374]" key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className={`p-3 ${
+                            !cell.id.includes("email") ? "capitalize" : ""
+                          }   text-sm text-[#4db28b] whitespace-nowrap text-center even:bg-[#183D3D]`}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <h1 className="font-extrabold text-amber-700">
+                NO DATA IN THE TABLE TO SHOW!
+              </h1>
+            )}
+          </div>
+          <div className=" space-x-3 mt-5 select-none">
+            <button
+              className={`bg-emerald-800 rounded-md text-white p-2 font-extrabold ${
+                !table.getCanPreviousPage() && "opacity-30"
+              }`}
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              {"<<"}
+            </button>
+            <span className="text-red-400">
+              {table.getState().pagination.pageIndex + 1}
+            </span>
+            <span className="text-gray-400">of</span>
+            <span className="text-red-400">{table.getPageCount()}</span>
+            <button
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className={`bg-emerald-800 rounded-md text-white p-2 font-extrabold ${
+                !table.getCanNextPage() && "opacity-30"
+              }`}
+            >
+              {">>"}
+            </button>
+          </div>
+        </main>
       </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+    </section>
+  );
 }
